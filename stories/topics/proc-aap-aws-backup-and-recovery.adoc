@@ -1,0 +1,80 @@
+[id="proc-aap-aws-backup-and-recovery"]
+
+= AAP Backup and Recovery Procedure
+
+In order to backup and restore your AAP admin deployment, it is vital to have your old AAP Admin Secret and SECRET_KEY recorded somewhere safe. In addition to this, it is also extremely important that regular manual snapshots of the RDS are taken to ensure a deployment can be restored as close as possible to its previous working state. Follow the steps below to ensure a smooth backup and recovery process.
+
+== Backup Process
+=== Retrieve the SECRET_KEY for Ansible Automation Controller and store in a safe place
+. Navigate to *CloudFormation* on your AWS Console
+. Select the Red Hat AAP stack
+. Select the *Resources* tab and navigate to menu:controller[autoscale-group > ASG] on the resource tree and click the link to go to the autoscale group for controller
+. Select the *Instance management* tab and click on one of the instance ids to open up a new tab and go to that tab
+. Select the btn:[Connect] button on the top left and select a method to connect to the instance
+. After connecting to the instance, in the termial run
++ 
+[source,bash]
+----
+$ cat /etc/tower/SECRET_KEY
+---- 
+This will display the secret_key. Record this key somewhere safe. This will be needed in the case of an incident where your AAP deployment is lost and needs to be recovered.
+
+=== Take a manual snapshot of the RDS for your AAP deployment
+. Navigate to *CloudFormation* on your AWS Console
+. Select the *Resources* tab and navigate to menu:rds[rds] on the resource tree and click the link to go to the RDS of the deployment
+. Select *Instance actions* near the top of the screen to reveal a drop-down menu and click the btn:[Take Snapshot] button
+. Enter a name for the snapshot and click btn:[Take Snapshot]
+. Your snapshot should now appear in a list of manual RDS snapshots. It is important to take a manual snapshot over relying on the automated ones created by an instance as automated snapshots are attached to the lifecycle of the RDS instance. An automated snapshot will not be available to be used for recovery in the event your deployment is lost
+
+== Recovery Process
+
+=== Find ARN of RDS snapshot you want to recover from
+. Navigate to *RDS* on your AWS console
+. Select *Snapshots* in the left menu
+. Select the snapshot you want to use for your new deployment
+. The ARN will be listed near the top right of the page. Record the ARN of the snapshot for use in the next step
+
+=== Modify existing CloudFormation Template to reference an RDS Snapshot
+. Find the CloudFormation Template used to create your old AAP Deployment
+. Navigate to the RDS component of the CloudFormation Template (Can search for *postgres* to get to the component)
+. Under *Properties* add *“DBSnapshotIdentifier”: <ARN of the RDS snapshot>*
+. Under *Properties* change *“DBName”: “awx”* to  *“DBName”: {“Ref": "AWS::NoValue" }*
+
+=== Create a new AAP Deployment Using the Modified Template
+. In the AWS Console, navigate to *CloudFormation* and click on btn:[Create Stack] located near the top right of the screen
+. Select *With new resources (standard)* in the dropdown
+. In the *Specify template* section under *Template source* select btn:[Upload a template file] and select the template you have modified. Click btn:[Next] to go to the next step
+. Enter a stack name and select an AWSKeyPair to use for the deployment. Click btn:[Next] to go to the *Configure stack options* page
+. Optionally configure stack options and click btn:[Next] to review the stack
+. Press btn:[Submit] to create your new deployment using an RDS Snapshot.
+
+=== Replace the AAP SECRET_KEY with the one from your old deployment
+. Navigate to *CloudFormation* on your AWS Console
+. Select the Red Hat AAP stack
+. Select the *Resources* tab and navigate to menu:controller[autoscale-group > ASG] on the resource tree and click the link to go to the autoscale group for controller
+. Select the *Instance management* tab and click on one of the instance ids to open up a new tab and go to that tab
+.  Select the btn:[Connect] button on the top left and select a method to connect to the instance
+. After connecting to the instance, run
++ 
+[source,bash]
+----
+$ sudo vi /etc/tower/SECRET_KEY
+----
+this will open a vim editor that will allow you to edit and update the SECRET_KEY file with your old secret key.
+
+=== Change admin password to match old deployment
+. Navigate to *CloudFormation* on your AWS Console
+. Select the *Resources* tab and navigate to menu:storage[admin-secret] on the resource tree and click the link to go to the admin secret for the deployment
+. Scroll down to the secret value section and click on the btn:[Retrieve secret value] button
+. Click btn:[Edit] in the top right corner and update the password to your old admin password
+. *Terminate an instance from both the controller and hub autoscale group for changes to take effect* (Note. Terminating an instance from an autoscale group will just cause another instance to be created. This instance at boot time will update AAP with your new password changes)
+    .. Navigate to *CloudFormation* on your AWS Console and select the new AAP deployment stack
+    .. Select the *Resources* tab and navigate to menu:controller[autoscale-group > ASG] on the resource tree and click the link to go to the autoscale group for controller
+    .. Select the *Instance management* tab and select either of the 2 instances in the autoscale group
+    .. Select the *Instance State* dropdown and click btn:[Terminate Instance]
+    .. Again navigate to *CloudFormation* on your AWS Console and select the new AAP deployment stack
+    .. Select the *Resources* tab and navigate to menu:hub[autoscale-group > ASG] on the resource tree and click the link to go to the autoscale group for hub
+    .. Select the *Instance management* tab and select the 1 instance in the autoscale group
+    .. Select the *Instance State* dropdown and click btn:[Terminate Instance]
+
+You should now be able to successfully log in to Red Hat Ansible Automation Platform Controller and Hub using your old deployment credentials. In addition, all job history and other records should be in the same state as the RDS snapshot you specified when creating this new deployment.
