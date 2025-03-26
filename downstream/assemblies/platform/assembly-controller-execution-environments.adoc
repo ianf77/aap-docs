@@ -5,6 +5,10 @@
 Unlike legacy virtual environments, {ExecEnvShort}s are container images that make it possible to incorporate system-level dependencies and collection-based content. 
 Each {ExecEnvShort} enables you to have a customized image to run jobs and has only what is necessary when running the job.
 
+The *Execution Environments* page displays a list of the {ExecEnvShort}s that are available.
+
+For each {ExecEnvShort} listed, you can duplicate image:copy.png[Copy,15,15] the {ExecEnvShort} attributes, using the {MoreActionsIcon} icon next to each {ExecEnvShort}. 
+
 include::platform/ref-controller-build-exec-envs.adoc[leveloffset=+1]
 include::platform/ref-controller-install-builder.adoc[leveloffset=+2]
 include::platform/ref-controller-building-exec-env.adoc[leveloffset=+2]
