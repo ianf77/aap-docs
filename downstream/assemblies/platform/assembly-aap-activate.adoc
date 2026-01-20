@@ -3,7 +3,7 @@
 ifdef::context[:parent-context: {context}]
 
 [id="assembly-aap-activate"]
-= Activate your subscription
+= Activating {PlatformName}
 
 :context: activate-aap
 
