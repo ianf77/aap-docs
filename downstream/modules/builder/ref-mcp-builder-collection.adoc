@@ -17,7 +17,7 @@ The framework consists of three main components:
 
 ** Installs the appropriate language runtime (Go, Node.js, or Python/uv) if not already present.
 ** Downloads and installs the MCP server package from the correct source (PyPI, npm, or Git).
-** Generates a unified manifest file (`/opt/mcp/mcpservers.json/opt/mcp/mcpservers.json`) listing all available MCP servers.
+** Generates a unified manifest file (`/opt/mcp/mcpservers.json') listing all available MCP servers.
 ** Creates the `mcp_manage` utility for listing, querying, and running installed MCP servers
 * Your custom role defines metadata about the MCP server you want to install. At minimum, it includes:
 
@@ -25,7 +25,7 @@ The framework consists of three main components:
 ** A tasks file that invokes the common role's `install_manager` and `generate_manifest` tasks.
 * A playbook ties your custom role into the build process. This playbook is called by ansible-builder during the execution environment container build.
 
-*Selecting an installation method*
+*Select an installation method*
 
 The framework supports three installation methods, selected by the `lang` field in your registry metadata:
 

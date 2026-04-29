@@ -7,7 +7,7 @@
 [role="_abstract"]
 If you need to bypass local installation and dynamically choose your deployment mode at build time, configure your role to reference a remote MCP server over HTTP.
 
-.Add a remote server to your role
+*Add a remote server to your role*
 To define a remote MCP server, set the type to http in your registry metadata:
 
 ----
@@ -24,9 +24,14 @@ cfn_mcp_registry:
 cfn_mcp_version: "latest"
 ----
 
-When `type` is set to `http`, the framework skips installation and only registers the server in the manifest with its URL.
+When `type` is set to `http`, the framework skips installation and only registers the server in the manifest with its URL. 
 
-.Support both modes
+[NOTE]
+====
+The package is still downloaded and installed; only the manifest entry changes (using `"url"` instead of `"command"`).
+====
+
+*Support both modes*
 The GitHub MCP role in `ansible.mcp_builder` demonstrates a pattern for supporting both embedded and remote modes. You can adopt this pattern by:
 
 . Creating a `vars/remote.yml` file with the remote registry definition.
